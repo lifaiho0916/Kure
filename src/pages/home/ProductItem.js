@@ -19,8 +19,6 @@ function ProductItem({ category_name, on_category_page }) {
       color: '#499e9b'
     }
   }
-  
-  const db = new KureDatabase();
   const [productStore, setProductStore] = useState([]);
   const rowsPerPage = (on_category_page) ? 12 : 6;
   const [rowCurrent, setRowCurrent] = useState(rowsPerPage);
@@ -50,9 +48,8 @@ function ProductItem({ category_name, on_category_page }) {
     channel.addEventListener('message', event => {
       console.log('Received message from service worker: ', event);
       // Ensure out category name's first letter is uppercase or else our index won't work.
-      const newDB = new KureDatabase();
       category_name = category_name.charAt(0).toUpperCase() + category_name.slice(1);
-      newDB.productData().getFiltered('category_name', category_name).then((e) => {
+      db.productData().getFiltered('category_name', category_name).then((e) => {
         setProductStore(e);
       });
     });
@@ -65,6 +62,8 @@ function ProductItem({ category_name, on_category_page }) {
       }
     })
   }, []);
+
+  const db = new KureDatabase();
 
   useEffect(() => {
     // Ensure out category name's first letter is uppercase or else our index won't work.
