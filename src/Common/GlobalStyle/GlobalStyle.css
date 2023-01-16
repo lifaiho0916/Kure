@@ -1,0 +1,44 @@
+:root {
+    --primary: #32BEB9;
+    --text-color: #f7f7f7;
+    --background: #272727;
+    --text-color-second: #57c4c1;
+    /* --layout-Default-width: 1150px;
+    --layout-Default-space-width: 24px;
+    --width-search-button: 52px;
+    --header-default-height: 60px; */
+    --font-family: 'Source Sans Pro', sans-serif;
+}
+
+.wrapper{
+    font-family: var(--font-family);
+    color: var(--text-color);
+    background-color: var(--background);
+    min-height: 100vh;
+    font-size: 1rem;
+    font-weight: 400;
+    overflow-x: hidden;
+}
+
+.wrapper h1, .wrapper h2, .wrapper h3, .wrapper h4, .wrapper h5, .wrapper h6,.wrapper p{
+    margin: 0;
+}
+
+.wrapper div {
+    box-sizing: border-box;
+}
+
+.wrapper input {
+    border: none;
+    outline: none;
+}
+
+.wrapper a {
+    /* color: var(--text-color-second); */
+    /* text-decoration: none; */
+    cursor: pointer;
+}
+
+.pin-wrapper label {
+    display: none;
+}
