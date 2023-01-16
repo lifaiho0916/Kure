@@ -19,10 +19,16 @@ function ProductItem({ category_name, on_category_page }) {
       color: '#499e9b'
     }
   }
+
+  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2);
   const [productStore, setProductStore] = useState([]);
   const rowsPerPage = (on_category_page) ? 12 : 6;
   const [rowCurrent, setRowCurrent] = useState(rowsPerPage);
   const observer = useRef();
+  const categoryName = React.useMemo(() => {
+    return category_name.charAt(0).toUpperCase() + category_name.slice(1);
+  }, [category_name])
+
   const lastProductElementRef = useCallback(node => {
     if (!on_category_page) {
       return;
@@ -46,40 +52,39 @@ function ProductItem({ category_name, on_category_page }) {
     // Listen for messages from the service worker using the BroadcastChannel API
     const channel = new BroadcastChannel('kure-app');
     channel.addEventListener('message', event => {
-      console.log('Received message from service worker: ', event);
-      // Ensure out category name's first letter is uppercase or else our index won't work.
-      category_name = category_name.charAt(0).toUpperCase() + category_name.slice(1);
-      db.productData().getFiltered('category_name', category_name).then((e) => {
-        setProductStore(e);
+      let lcalStoreId = localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2
+      db.productData().getFiltered('category_name', categoryName).then((products) => {
+        const selectedProducts = products.filter((product) => {
+          const filters = (product.store_id.split(",")).filter((id) => Number(id) === lcalStoreId)
+          return filters.length > 0
+        })
+        console.log(selectedProducts)
+        setProductStore(selectedProducts);
       });
     });
-
-    db.productData().getCount().then((count) => {
-      if (count) {
-        db.productData().getFiltered('category_name', category_name).then((e) => {
-          setProductStore(e);
-        })
-      }
-    })
   }, []);
 
   const db = new KureDatabase();
 
   useEffect(() => {
-    // Ensure out category name's first letter is uppercase or else our index won't work.
-    category_name = category_name.charAt(0).toUpperCase() + category_name.slice(1);
-    db.productData().getFiltered('category_name', category_name).then((e) => {
-      setProductStore(e);
-    });
-  }, [category_name]);
+    db.productData().getCount().then((count) => {
+      if (count) {
+        db.productData().getFiltered('category_name', categoryName).then((products) => {
+          const selectedProducts = products.filter((product) => {
+            const filters = (product.store_id.split(",")).filter((id) => Number(id) === storeId)
+            return filters.length > 0
+          })
+          console.log(selectedProducts)
+          setProductStore(selectedProducts);
+        })
+      }
+    })
+  }, [categoryName, storeId]);
 
   return (
     <Box sx={{ pb: '20px' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1rem', px: '1rem' }}>
-        <Typography
-          variant="h3"
-          sx={{ '&.MuiTypography-root': { fontSize: '35px', fontWeight: 500, lineHeight: 1.2, mb: '0.5rem' } }}
-        >
+        <Typography variant="h3" sx={{ '&.MuiTypography-root': { fontSize: '35px', fontWeight: 500, lineHeight: 1.2, mb: '0.5rem' } }}>
           {firstLetterUpperCase(category_name)}
         </Typography>
         {!on_category_page &&
@@ -90,30 +95,28 @@ function ProductItem({ category_name, on_category_page }) {
       </Box>
       <Box sx={{ mb: '20px' }}>
         <Grid container rowSpacing={"20px"}>
-          {
-            productStore.length > 0 ?
-              (
-                productStore?.slice(0, rowCurrent).map((row, index) => {
-                  const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
-                  return (
-                    <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }}
-                      md={4} sm={4} lg={2}>
-                      <ProductCard key={index} data={row} />
-                    </Grid>
-                  );
-                })
-              ) :
-              (
-                fakeData[category_name]?.slice(0, rowCurrent).map((row, index) => {
-                  const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
-                  return (
-                    <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }}
-                      md={4} sm={4} lg={2}>
-                      <ProductCard key={index} data={row} />
-                    </Grid>
-                  );
-                })
-              )
+          {productStore.length > 0 ?
+            (
+              productStore?.slice(0, rowCurrent).map((row, index) => {
+                const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
+                return (
+                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4} lg={2}>
+                    <ProductCard key={index} data={row} />
+                  </Grid>
+                );
+              })
+            )
+            :
+            (
+              fakeData[category_name]?.slice(0, rowCurrent).map((row, index) => {
+                const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
+                return (
+                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4} lg={2}>
+                    <ProductCard key={index} data={row} />
+                  </Grid>
+                );
+              })
+            )
           }
         </Grid>
       </Box>

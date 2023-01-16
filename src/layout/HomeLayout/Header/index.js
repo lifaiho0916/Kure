@@ -29,9 +29,12 @@ import { Resource } from "../../../request/Resource";
 function Header() {
   const resource = new Resource();
 
-  const [store, setStore] = useState('Kure Wellness - Lake Mendocino');
+  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2);
   const handleChange = (event) => {
-    setStore(event.target.value);
+    setStoreId(Number(event.target.value));
+    localStorage.setItem("store_id", event.target.value)
+    const channel = new BroadcastChannel('kure-app')
+    channel.postMessage({ type: 'product_data', data: '', action: 'sync' })
   };
 
   const [showDrawerRight, setShowDrawerRight] = useState(false);
@@ -53,34 +56,34 @@ function Header() {
     {
       type: 'home',
       label: 'HOME',
-      icon: <Box sx={style}><img src={homeIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={homeIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     },
     {
       type: 'cart',
       label: 'CART',
-      icon: <Box sx={style}><img src={cartIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={cartIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     },
     {
       type: 'account',
       label: 'ACCOUNT',
-      icon: <Box sx={style}><img src={emojiIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={emojiIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     }
   ];
   let menu_logged_in = [
     {
       type: 'home',
       label: 'HOME',
-      icon: <Box sx={style}><img src={homeIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={homeIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     },
     {
       type: 'cart',
       label: 'CART',
-      icon: <Box sx={style}><img src={cartIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={cartIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     },
     {
       type: 'account',
       label: resource.userGetName(),
-      icon: <Box sx={style}><img src={emojiIcon} alt="Home" width={'100%'} height={'100%'}/></Box>
+      icon: <Box sx={style}><img src={emojiIcon} alt="Home" width={'100%'} height={'100%'} /></Box>
     }
   ];
 
@@ -166,7 +169,7 @@ function Header() {
       }}
     >
       <ButtonBase disableRipple component={Link} to={configHomeRouter.home} sx={{ '& img': { width: '100%' } }}>
-        <Logo/>
+        <Logo />
       </ButtonBase>
       <Box
         sx={{
@@ -186,13 +189,13 @@ function Header() {
         <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: { xs: 'column', sm: 'column', md: 'row' } }}>
           <Box sx={{ p: '10px 16px 10px 0px', display: 'flex', alignItems: 'center', flexDirection: 'row' }}>
             <Box sx={{ width: { xs: '40px', sm: '52px' }, height: { xs: '40px', sm: '52px' } }}>
-              <img src={cameraIcon} style={{ width: '100%', height: '100%' }} alt=""/>
+              <img src={cameraIcon} style={{ width: '100%', height: '100%' }} alt="" />
             </Box>
             <FormControl sx={{ width: { xs: '180px', sm: 'auto' } }}>
               <FormHelperText sx={{ color: '#f7f7f7', fontSize: { xs: '0.875rem', sm: '1rem' } }}>Select
                 store:</FormHelperText>
               <select
-                value={store}
+                value={storeId}
                 onChange={handleChange}
                 style={{
                   background: '#272727',
@@ -203,9 +206,9 @@ function Header() {
                   whiteSpace: 'nowrap'
                 }}
               >
-                <option value={10}>Kure Wellness - Lake Mendocino</option>
-                <option value={20}>Kure Wellness - Willits</option>
-                <option value={30}>Kure Wellness - South Ukiah</option>
+                <option value={2}>Kure Wellness - Lake Mendocino</option>
+                <option value={3}>Kure Wellness - Willits</option>
+                <option value={4}>Kure Wellness - South Ukiah</option>
               </select>
             </FormControl>
           </Box>
@@ -241,12 +244,12 @@ function Header() {
               placeholder="Search our products"
             />
             <Box sx={{ width: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <SearchIcon/>
+              <SearchIcon />
             </Box>
 
             {/* If have search value and openSearchBox just opened the search value box. */}
             {searchValue.length > 0 && openSearchBox &&
-              <SearchValue setSearchValue={setSearchValue} setopenSearchBox={setOpenSearchBox}/>}
+              <SearchValue setSearchValue={setSearchValue} setopenSearchBox={setOpenSearchBox} />}
           </Box>
         </Box>
       </Box>
@@ -273,8 +276,8 @@ function Header() {
           ))}
         </BottomNavigation>
       </Box>
-      <DrawerRight showDrawerRight={showDrawerRight} setShowDrawerRight={setShowDrawerRight}/>
-      <DrawerRightCart/>
+      <DrawerRight showDrawerRight={showDrawerRight} setShowDrawerRight={setShowDrawerRight} />
+      <DrawerRightCart />
       {/*<DrawerLeft showDrawerLeft={showDrawerLeft} setShowDrawerLeft={setShowDrawerLeft} dataTitle={dataTitle}/>*/}
     </Box>
   );
