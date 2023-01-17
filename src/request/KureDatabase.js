@@ -8,7 +8,7 @@ class KureDatabase {
 
   tables = [
     { name: 'product_category', keyPath: 'name' },
-    { name: 'product_data', keyPath: 'variation_id', indexes: ['link', 'category_name', 'variation_id'] },
+    { name: 'product_data', keyPath: 'variation_id', indexes: ['store_id', 'link', 'category_name', 'variation_id'] },
     { name: 'tokenworks', keyPath: 'customer_id' },
     { name: 'order', keyPath: 'order_id' },
     { name: 'order_item', keyPath: 'order_item_id' }
