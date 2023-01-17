@@ -1,19 +1,7 @@
+import * as idb from "idb";
+
 class KureDatabase {
-  idb =
-    window.indexedDB ||
-    window.mozIndexedDB ||
-    window.webkitIndexedDB ||
-    window.msIndexedDB ||
-    window.shimIndexedDB;
-
-  tables = [
-    { name: 'product_category', keyPath: 'name' },
-    { name: 'product_data', keyPath: 'variation_id', indexes: ['store_id', 'link', 'category_name', 'variation_id'] },
-    { name: 'tokenworks', keyPath: 'customer_id' },
-    { name: 'order', keyPath: 'order_id' },
-    { name: 'order_item', keyPath: 'order_item_id' }
-  ];
-
+  db = null;
   databaseDefinition = {
     dbName: "kure-db",
     dbVer: 1,
@@ -26,165 +14,149 @@ class KureDatabase {
     return this;
   }
 
-  connect = (db_definition) => {
-    return new Promise((resolve, reject) => {
-      // Opens a connection to the existing database or creates a new one
-      const req = this.idb.open(db_definition.dbName, db_definition.dbVer);
-      req.onsuccess = (ev) => {
-        // Saves an instance of the connection to our custom object
-        db_definition.dbCon = ev.target.result;
-        resolve();
-      }
-      req.onupgradeneeded = (event) => {
-        // Only fired once per db version, used to initialize the db
-        db_definition.dbCon = event.target.result;
-        db_definition.dbInit = 1;
-        resolve();
-      }
-      req.onerror = (e) => {
-        // Returns error event
-        reject(e);
-      }
-    });
-  }
-
-  createTables = (db_definition) => {
-    return new Promise((resolve, reject) => {
-      // If not called through onupgradeneeded event, return.
-      if (!db_definition.dbInit) {
-        resolve(`[createDB] ${db_definition.dbName}, already initialized`)
-      }
-      this.tables.forEach(el => {
-        // Creates the object store(table) and accepts keyPath (primary key).
-        const objectStore = db_definition.dbCon.createObjectStore(el.name, { keyPath: el.keyPath });
-        if (el.indexes) {
-          el.indexes.forEach(index => {
-            objectStore.createIndex(index, index, { unique: false });
+  async count() {
+    this.db = await idb.openDB(this.databaseDefinition.dbName, this.databaseDefinition.dbVer, {
+      upgrade(db, oldVersion, newVersion, transaction, event) {
+        if (oldVersion == 0) {
+          const tables = [
+            { name: 'product_category', keyPath: 'name' },
+            {
+              name: 'product_data',
+              keyPath: 'variation_id',
+              indexes: ['store_id', 'link', 'category_name', 'variation_id']
+            },
+            { name: 'tokenworks', keyPath: 'customer_id' },
+            { name: 'order', keyPath: 'order_id' },
+            { name: 'order_item', keyPath: 'order_item_id' }
+          ];
+          tables.forEach(el => {
+            // Creates the object store(table) and accepts keyPath (primary key).
+            const objectStore = db.createObjectStore(el.name, { keyPath: el.keyPath });
+            if (el.indexes) {
+              el.indexes.forEach(index => {
+                objectStore.createIndex(index, index, { unique: false });
+              });
+            }
+            objectStore.transaction.oncomplete = (e) => {
+              console.log(`[createTables] ${db.name}, task finished`);
+            }
+            objectStore.transaction.onerror = (event) => {
+              console.log(`[createTables] ${db.name}, ${event.request.errorCode}`);
+            };
           });
         }
-        objectStore.transaction.oncomplete = (e) => {
-          resolve(`[createTables] ${db_definition.dbName}, task finished`);
+      },
+      blocked(currentVersion, blockedVersion, event) {
+      },
+      blocking(currentVersion, blockedVersion, event) {
+      },
+      terminated() {
+      },
+    });
+    try {
+      return await this.db.count(this.currentTable);
+    } catch (err) {
+      console.log('error', err.message);
+    }
+  }
+
+  async put(rows) {
+    this.db = await idb.openDB(this.databaseDefinition.dbName, this.databaseDefinition.dbVer, {
+      upgrade(db, oldVersion, newVersion, transaction, event) {
+        if (oldVersion == 0) {
+          const tables = [
+            { name: 'product_category', keyPath: 'name' },
+            {
+              name: 'product_data',
+              keyPath: 'variation_id',
+              indexes: ['store_id', 'link', 'category_name', 'variation_id']
+            },
+            { name: 'tokenworks', keyPath: 'customer_id' },
+            { name: 'order', keyPath: 'order_id' },
+            { name: 'order_item', keyPath: 'order_item_id' }
+          ];
+          tables.forEach(el => {
+            // Creates the object store(table) and accepts keyPath (primary key).
+            const objectStore = db.createObjectStore(el.name, { keyPath: el.keyPath });
+            if (el.indexes) {
+              el.indexes.forEach(index => {
+                objectStore.createIndex(index, index, { unique: false });
+              });
+            }
+            objectStore.transaction.oncomplete = (e) => {
+              console.log(`[createTables] ${db.name}, task finished`);
+            }
+            objectStore.transaction.onerror = (event) => {
+              console.log(`[createTables] ${db.name}, ${event.request.errorCode}`);
+            };
+          });
         }
-        objectStore.transaction.onerror = (event) => {
-          reject(`[createTables] ${db_definition.dbName}, ${event.request.errorCode}`);
-        };
-      });
+      },
+      blocked(currentVersion, blockedVersion, event) {
+      },
+      blocking(currentVersion, blockedVersion, event) {
+      },
+      terminated() {
+      },
     });
+    try {
+      let transaction = this.db.transaction(this.currentTable, 'readwrite');
+      let object_store = transaction.objectStore(this.currentTable);
+      rows.forEach(row => {
+        object_store.put(row);
+      });
+
+      await transaction.complete;
+    } catch (err) {
+      console.log('error', err.message);
+    }
   }
 
-  /**
-   * We append data but we can also update it. Depends on if update_data is true or false.
-   *
-   * @param database_definition
-   * @param store
-   * @param key
-   * @param new_data
-   * @param update_data
-   * @returns {Promise<unknown>}
-   */
-  appendData = (store, key, new_data, update_data = false) => {
-    return new Promise((resolve, reject) => {
-      // Request a transaction with readwrite.
-      const trx = this.databaseDefinition.dbCon.transaction([store], "readwrite").objectStore(store);
-
-      // Append new objects to store by mapping over the newData array of objects.
-      new_data.map(el => {
-        const exists = trx.get(el[key]);
-        exists.onsuccess = function (e) {
-          const id = Boolean(exists.result);
-          // No data exists. Add new data.
-          if (!id) {
-            trx.add(el);
-          } else {
-            // Data exists. Update data, only if update_data is true.
-            if (update_data) {
-              trx.put(el);
+  async getAllFromIndex(index_name, key) {
+    this.db = await idb.openDB(this.databaseDefinition.dbName, this.databaseDefinition.dbVer, {
+      upgrade(db, oldVersion, newVersion, transaction, event) {
+        if (oldVersion == 0) {
+          const tables = [
+            { name: 'product_category', keyPath: 'name' },
+            {
+              name: 'product_data',
+              keyPath: 'variation_id',
+              indexes: ['store_id', 'link', 'category_name', 'variation_id']
+            },
+            { name: 'tokenworks', keyPath: 'customer_id' },
+            { name: 'order', keyPath: 'order_id' },
+            { name: 'order_item', keyPath: 'order_item_id' }
+          ];
+          tables.forEach(el => {
+            // Creates the object store(table) and accepts keyPath (primary key).
+            const objectStore = db.createObjectStore(el.name, { keyPath: el.keyPath });
+            if (el.indexes) {
+              el.indexes.forEach(index => {
+                objectStore.createIndex(index, index, { unique: false });
+              });
             }
-          }
-        };
-
-        exists.onerror = function (e) {
-          console.log(e);
-        };
-      });
-      // resolve(`[appendDB] -> ${store}, Task finished`);
-    });
-  };
-
-  initializeDatabaseObjectStores = () => {
-    return new Promise((resolve, reject) => {
-      this.connect(this.databaseDefinition).then(() => {
-        this.createTables(this.databaseDefinition).then((res) => {
-          resolve(this);
-        });
-      });
-    });
-  };
-
-  getCount() {
-    const store_name = this.currentTable;
-    return new Promise((resolve, reject) => {
-      this.connect(this.databaseDefinition).then(() => {
-        this.createTables(this.databaseDefinition).then((res) => {
-          const trx = this.databaseDefinition.dbCon.transaction([store_name], "readonly").objectStore(store_name);
-          const count = trx.count();
-          count.onsuccess = function (e) {
-            resolve(count.result);
-          };
-          count.onerror = function (e) {
-            reject(e);
-          };
-        });
-      });
-    });
-  }
-
-  getFiltered(index_name, filter_val) {
-    const store_name = this.currentTable;
-    return new Promise((resolve, reject) => {
-      this.connect(this.databaseDefinition).then(() => {
-        this.createTables(this.databaseDefinition).then((res) => {
-          const trx = this.databaseDefinition.dbCon.transaction([store_name], "readonly").objectStore(store_name);
-          let filterIndex = trx.index(index_name);
-          let request = filterIndex.getAll(filter_val);
-          request.onsuccess = function () {
-            if (request.result !== undefined) {
-              resolve(request.result);
-            } else {
-              console.log("No data found.");
+            objectStore.transaction.oncomplete = (e) => {
+              console.log(`[createTables] ${db.name}, task finished`);
             }
-          };
-          request.onerror = function (e) {
-            console.log(e);
-          };
-        });
-      });
+            objectStore.transaction.onerror = (event) => {
+              console.log(`[createTables] ${db.name}, ${event.request.errorCode}`);
+            };
+          });
+        }
+      },
+      blocked(currentVersion, blockedVersion, event) {
+      },
+      blocking(currentVersion, blockedVersion, event) {
+      },
+      terminated() {
+      },
     });
+    try {
+      return await this.db.getAllFromIndex(this.currentTable, index_name, key);
+    } catch (err) {
+      console.log('error', err.message);
+    }
   }
-
-  /**
-   * Check if given store has data.
-   *
-   * @param store
-   * @returns {Promise<unknown>}
-   */
-  checkDataExistsOld = (store) => {
-    return new Promise((resolve, reject) => {
-      this.connect(this.databaseDefinition).then(() => {
-        // Request a transaction with readwrite.
-        const trx = this.databaseDefinition.dbCon.transaction([store], "readwrite").objectStore(store);
-        // get all data.
-        let all = trx.getAll();
-        all.onsuccess = function (e) {
-          let results_found = (all.result.length > 0);
-          resolve(results_found);
-        };
-        all.onerror = function (e) {
-          console.log(e);
-        };
-      });
-    });
-  };
 
   initData = {
     product_category: [

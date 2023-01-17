@@ -26,7 +26,7 @@ function ProductDetail() {
       }
     };
 
-    db.productData().getCount().then((count) => {
+    db.productData().count().then((count) => {
       if (count) fetchData().catch(console.error);
     })
 

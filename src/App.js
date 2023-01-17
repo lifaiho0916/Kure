@@ -21,16 +21,16 @@ const App = () => {
 
   useEffect(() => {
     let pageCount = 0
-    db.productData().getCount().then((count) => {
+    db.productData().count().then((count) => {
       if (!count) {
         resource.commerceProductDataSync({ page: 0 }).then((el) => {
-          db.appendData('product_data', 'variation_id', el.data.rows).then((res) => {
+          db.productData().put(el.data.rows).then((res) => {
             console.log(res);
           });
 
           for (let page = 1; page <= el.data.pager.total_pages; page++) {
             resource.commerceProductDataSync({ page: page }).then((el) => {
-              db.appendData('product_data', 'variation_id', el.data.rows).then((res) => {
+              db.productData().put(el.data.rows).then((res) => {
                 console.log(res);
               });
               pageCount++;
@@ -73,7 +73,7 @@ const App = () => {
 
   return (
     <ThemeCustomization>
-      <Routes />
+      <Routes/>
     </ThemeCustomization>
   );
 };

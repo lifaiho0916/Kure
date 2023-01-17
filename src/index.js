@@ -16,7 +16,7 @@ root.render(
   // <StrictMode>
   <ReduxProvider store={store}>
     <BrowserRouter basename="">
-      <App/>
+      <App />
     </BrowserRouter>
   </ReduxProvider>
   // </StrictMode>

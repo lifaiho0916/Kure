@@ -20,7 +20,7 @@ function ProductItem({ category_name, on_category_page }) {
     }
   }
 
-  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2);
+  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : null);
   const [productStore, setProductStore] = useState([]);
   const rowsPerPage = (on_category_page) ? 12 : 6;
   const [rowCurrent, setRowCurrent] = useState(rowsPerPage);
@@ -48,13 +48,14 @@ function ProductItem({ category_name, on_category_page }) {
     }
   }, []);
 
+  const db = new KureDatabase();
+
   const selectProducts = (sId) => {
-    db.productData().getFiltered('category_name', categoryName).then((products) => {
-      const selectedProducts = products.filter((product) => {
+    db.productData().getAllFromIndex('category_name', categoryName).then((products) => {
+      const selectedProducts = storeId === null ? [] : products.filter((product) => {
         const filters = (product.store_id.split(",")).filter((id) => Number(id) === sId)
         return filters.length > 0
       })
-      console.log(selectedProducts)
       setProductStore(selectedProducts);
     });
   }
@@ -63,28 +64,35 @@ function ProductItem({ category_name, on_category_page }) {
     // Listen for messages from the service worker using the BroadcastChannel API
     const channel = new BroadcastChannel('kure-app');
     channel.addEventListener('message', event => {
-      let localStoreId = localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2
-      if(localStoreId !== storeId) setStoreId(localStoreId)
+      let store_id = localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : null
+      if (store_id === null) return
+      if (store_id !== storeId) setStoreId(store_id)
       else selectProducts(storeId)
     });
   }, []);
 
-  const db = new KureDatabase();
-
   useEffect(() => {
-    db.productData().getCount().then((count) => {
+    db.productData().count().then((count) => {
       if (count) {
-        db.productData().getFiltered('category_name', categoryName).then((products) => {
+        db.productData().getAllFromIndex('category_name', categoryName).then((products) => {
           selectProducts(storeId)
         })
       }
     })
   }, [categoryName, storeId]);
 
+
   return (
     <Box sx={{ pb: '20px' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: '1rem', px: '1rem' }}>
-        <Typography variant="h3" sx={{ '&.MuiTypography-root': { fontSize: '35px', fontWeight: 500, lineHeight: 1.2, mb: '0.5rem' } }}>
+        <Typography variant="h3" sx={{
+          '&.MuiTypography-root': {
+            fontSize: '35px',
+            fontWeight: 500,
+            lineHeight: 1.2,
+            mb: '0.5rem'
+          }
+        }}>
           {firstLetterUpperCase(category_name)}
         </Typography>
         {!on_category_page &&
@@ -100,7 +108,8 @@ function ProductItem({ category_name, on_category_page }) {
               productStore?.slice(0, rowCurrent).map((row, index) => {
                 const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
                 return (
-                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4} lg={2}>
+                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4}
+                    lg={2}>
                     <ProductCard key={index} data={row} />
                   </Grid>
                 );
@@ -111,7 +120,8 @@ function ProductItem({ category_name, on_category_page }) {
               fakeData[category_name]?.slice(0, rowCurrent).map((row, index) => {
                 const itemProps = ((rowCurrent) === index + 1) ? { ref: lastProductElementRef } : {};
                 return (
-                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4} lg={2}>
+                  <Grid {...itemProps} key={index} item xs={12} sx={{ px: { xs: 2, sm: 2, md: 2 } }} md={4} sm={4}
+                    lg={2}>
                     <ProductCard key={index} data={row} />
                   </Grid>
                 );

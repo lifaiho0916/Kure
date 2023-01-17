@@ -8,8 +8,11 @@ import {
   FormControl,
   BottomNavigation,
   BottomNavigationAction,
-  Input
+  Input,
+  Dialog,
 } from '@mui/material';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 import SearchIcon from '@mui/icons-material/Search';
 import configHomeRouter from 'routes/configRouterHome';
 import DrawerRight from '../Drawer/DrawerRight';
@@ -17,6 +20,7 @@ import { openDrawer } from 'store/reducers/menu';
 import DrawerRightCart from '../Drawer/DrawerRightCart';
 // import DrawerLeft from '../Drawer/DrawerLeft';
 import SearchValue from 'components/SearchValue/index';
+import PopUp from '../../../popup/index';
 import Logo from './Logo/Logo';
 import homeIcon from 'assets/images/icons/icon-home.svg';
 import cartIcon from 'assets/images/icons/icon-cart.svg';
@@ -29,13 +33,20 @@ import { Resource } from "../../../request/Resource";
 function Header() {
   const resource = new Resource();
 
-  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2);
+  const [storeId, setStoreId] = useState(localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : null);
   const handleChange = (event) => {
     setStoreId(Number(event.target.value));
     localStorage.setItem("store_id", event.target.value)
     const channel = new BroadcastChannel('kure-app')
     channel.postMessage({ type: 'product_data', data: '', action: 'sync' })
   };
+
+  const changeStoreId = (id) => {
+    setStoreId(id);
+    localStorage.setItem("store_id", id)
+    const channel = new BroadcastChannel('kure-app')
+    channel.postMessage({ type: 'product_data', data: '', action: 'sync' })
+  }
 
   const [showDrawerRight, setShowDrawerRight] = useState(false);
   //const [showDrawerLeft, setShowDrawerLeft] = useState(false);
@@ -156,6 +167,16 @@ function Header() {
     }
   };
 
+  useEffect(() => {
+    const channel = new BroadcastChannel('kure-app');
+    channel.addEventListener('message', event => {
+      if (event.data.type === 'change_storeId') {
+        localStorage.setItem("store_id", event.data.data)
+        setStoreId(Number(event.data.data))
+      }
+    });
+  }, [])
+
   return (
     <Box
       sx={{
@@ -168,6 +189,19 @@ function Header() {
         flexDirection: { xs: 'column', sm: 'row' }
       }}
     >
+      <Dialog
+        open={storeId === null}
+        style={{ backgroundColor: '#373737', opacity: "90%" }}
+        PaperProps={{
+          style: {
+            backgroundColor: "transparent",
+            boxShadow: 'none',
+            top: '-30%'
+          }
+        }}
+      >
+        <PopUp handleStoreIdChange={(id) => setStoreId(id)} />
+      </Dialog>
       <ButtonBase disableRipple component={Link} to={configHomeRouter.home} sx={{ '& img': { width: '100%' } }}>
         <Logo />
       </ButtonBase>
@@ -195,7 +229,7 @@ function Header() {
               <FormHelperText sx={{ color: '#f7f7f7', fontSize: { xs: '0.875rem', sm: '1rem' } }}>Select
                 store:</FormHelperText>
               <select
-                value={storeId}
+                value={storeId === null ? 2 : storeId}
                 onChange={handleChange}
                 style={{
                   background: '#272727',
