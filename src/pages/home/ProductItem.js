@@ -48,19 +48,24 @@ function ProductItem({ category_name, on_category_page }) {
     }
   }, []);
 
+  const selectProducts = (sId) => {
+    db.productData().getFiltered('category_name', categoryName).then((products) => {
+      const selectedProducts = products.filter((product) => {
+        const filters = (product.store_id.split(",")).filter((id) => Number(id) === sId)
+        return filters.length > 0
+      })
+      console.log(selectedProducts)
+      setProductStore(selectedProducts);
+    });
+  }
+
   useEffect(() => {
     // Listen for messages from the service worker using the BroadcastChannel API
     const channel = new BroadcastChannel('kure-app');
     channel.addEventListener('message', event => {
-      let lcalStoreId = localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2
-      db.productData().getFiltered('category_name', categoryName).then((products) => {
-        const selectedProducts = products.filter((product) => {
-          const filters = (product.store_id.split(",")).filter((id) => Number(id) === lcalStoreId)
-          return filters.length > 0
-        })
-        console.log(selectedProducts)
-        setProductStore(selectedProducts);
-      });
+      let localStoreId = localStorage.getItem("store_id") ? Number(localStorage.getItem("store_id")) : 2
+      if(localStoreId !== storeId) setStoreId(localStoreId)
+      else selectProducts(storeId)
     });
   }, []);
 
@@ -70,12 +75,7 @@ function ProductItem({ category_name, on_category_page }) {
     db.productData().getCount().then((count) => {
       if (count) {
         db.productData().getFiltered('category_name', categoryName).then((products) => {
-          const selectedProducts = products.filter((product) => {
-            const filters = (product.store_id.split(",")).filter((id) => Number(id) === storeId)
-            return filters.length > 0
-          })
-          console.log(selectedProducts)
-          setProductStore(selectedProducts);
+          selectProducts(storeId)
         })
       }
     })
