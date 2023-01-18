@@ -14,7 +14,12 @@ class KureDatabase {
     return this;
   }
 
-  async count() {
+  storeData() {
+    this.currentTable = 'activated_stores';
+    return this;
+  }
+
+  async initialize() {
     this.db = await idb.openDB(this.databaseDefinition.dbName, this.databaseDefinition.dbVer, {
       upgrade(db, oldVersion, newVersion, transaction, event) {
         if (oldVersion == 0) {
@@ -27,7 +32,8 @@ class KureDatabase {
             },
             { name: 'tokenworks', keyPath: 'customer_id' },
             { name: 'order', keyPath: 'order_id' },
-            { name: 'order_item', keyPath: 'order_item_id' }
+            { name: 'order_item', keyPath: 'order_item_id' },
+            { name: 'activated_stores', keyPath: 'store_id' }
           ];
           tables.forEach(el => {
             // Creates the object store(table) and accepts keyPath (primary key).
@@ -53,6 +59,10 @@ class KureDatabase {
       terminated() {
       },
     });
+  }
+
+  async count() {
+    await this.initialize();
     try {
       return await this.db.count(this.currentTable);
     } catch (err) {

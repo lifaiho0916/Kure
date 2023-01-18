@@ -1,11 +1,15 @@
 import React, {useState} from 'react';
 import '../Common/NumPadStyle/NumPadStyle.css';
+import { Resource } from "request/Resource";
 import AnimateButton from 'components/@extended/AnimateButton';
 import Button from "@mui/material/Button";
+import {FormHelperText} from "@mui/material";
 
 
 const PinNumPad = () => {
   const [value, setValue] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const resource = new Resource();
 
   const handleClick = (e) => {
     if (value.length < 4) {
@@ -29,7 +33,12 @@ const PinNumPad = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(value);
+    resource.SwitchCashierUsingPin(value).then((el) => {
+      console.log(el);
+    }).catch((error) => {
+      setErrorMessage(error.data.message);
+    });
+    setValue('');
   }
 
   const handleBack = () => {
@@ -38,8 +47,11 @@ const PinNumPad = () => {
 
   return (
     <div className="numpad-wrapper">
+      <FormHelperText error id="helper-text-pin-login">
+        {errorMessage}
+      </FormHelperText>
       <div className="display">
-        <input placeholder="Enter user Pin" type="text" defaultValue={value} onKeyDown={handleKeyDown} tabIndex={0}/>
+        <input placeholder="Enter user Pin" type="text" value={value} onChange={handleClick} onKeyDown={handleKeyDown} tabIndex={0}/>
       </div>
       <div className="numpad-container">
         <div className="numpad-row">

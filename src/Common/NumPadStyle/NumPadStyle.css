@@ -47,6 +47,11 @@
   border-radius: 3px;
 }
 
+#helper-text-pin-login {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
 /* Add a media query for mobile devices */
 @media only screen and (max-width: 600px) {
   .numpad-container {

@@ -1,12 +1,21 @@
 import { Typography, Link } from '@mui/material';
+import logo from '../assets/images/kure_logo_transparent.png';
+import { useState, useEffect } from 'react';
+
+
 
 const PopUp = (props) => {
     const { handleStoreIdChange } = props
-    
+
     const changeStoreId = (id) => {
         localStorage.setItem("store_id", id)
         handleStoreIdChange(id)
     }
+
+    useEffect(() => {
+
+    }, [])
+
 
     return (
         <div
@@ -18,7 +27,7 @@ const PopUp = (props) => {
                 alignItems: 'center'
             }}
         >
-            <img alt="logo" src="https://kuremendocino.com/themes/ji_kure_theme/images/kure_logo_transparent.png" style={{ maxWidth: '298px', width: '100%' }} />
+            <img alt="logo" src={logo} style={{ maxWidth: '298px', width: '100%' }} />
             <Typography variant="h2" sx={{ color: '#FFFFFF' }}>Welcome to Kure Wellness</Typography>
             <Typography variant="h3" sx={{ color: '#FFFFFF' }}>You must be 21+ years old to use this website</Typography>
             <div style={{ marginTop: '20px', marginBottom: '20px', }}>

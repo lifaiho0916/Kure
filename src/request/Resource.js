@@ -34,8 +34,8 @@ class Resource {
   urlB64ToUint8Array = base64String => {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)
-    .replace(/\-/g, "+")
-    .replace(/_/g, "/");
+      .replace(/\-/g, "+")
+      .replace(/_/g, "/");
     const rawData = atob(base64);
     const outputArray = new Uint8Array(rawData.length);
     for (let i = 0; i < rawData.length; ++i) {
@@ -61,6 +61,19 @@ class Resource {
 
   async commerceProductDataSync(parameters = {}) {
     return await this._fetch('/rest/commerce-products/data-sync' + '', parameters);
+  }
+
+  async commerceActivateStore() {
+    return await this._fetch('/commerce:stores');
+  }
+
+
+
+  async SwitchCashierUsingPin(user_pin) {
+    let data = {
+      pin: user_pin,
+    };
+    return await this._fetch('/cashier/switch-using-pin', null, JSON.stringify(data), { 'Content-Type': 'application/json;charset=UTF-8' }, 'POST', true);
   }
 
   /**
@@ -161,11 +174,11 @@ class Resource {
           'Content-Type': 'application/json',
         };
         return this._fetch('/web-push-device-registration', null, _data, headers, 'POST', true)
-        .then((response) => {
-          console.log(response);
-        }).catch((response) => {
-          console.log(response);
-        });
+          .then((response) => {
+            console.log(response);
+          }).catch((response) => {
+            console.log(response);
+          });
       });
     });
   }
@@ -182,12 +195,12 @@ class Resource {
       request_type: 'send_reset_email',
     };
     return await this._fetch('/first-rest-end-point', null, JSON.stringify(user_info), { 'Content-Type': 'application/json;charset=UTF-8' }, 'POST', false)
-    .then((response) => {
-      return Promise.resolve(response);
-    })
-    .catch((response) => {
-      return Promise.reject(response);
-    });
+      .then((response) => {
+        return Promise.resolve(response);
+      })
+      .catch((response) => {
+        return Promise.reject(response);
+      });
   }
 
   /**
@@ -208,12 +221,12 @@ class Resource {
       request_type: 'update_password',
     };
     return await this._fetch('/first-rest-end-point', null, JSON.stringify(data), { 'Content-Type': 'application/json;charset=UTF-8' }, 'POST', false)
-    .then((response) => {
-      return Promise.resolve(response);
-    })
-    .catch((response) => {
-      return Promise.reject(response);
-    });
+      .then((response) => {
+        return Promise.resolve(response);
+      })
+      .catch((response) => {
+        return Promise.reject(response);
+      });
   }
 
   async verifyUserEmail(uid, timestamp, hash) {
@@ -236,14 +249,14 @@ class Resource {
     };
     // return await this._fetch('/password-recovery', null, JSON.stringify(user_info), { 'Content-Type': 'application/json;charset=UTF-8' }, 'POST', false)
     return await this._fetch('/first-rest-end-point', null, JSON.stringify(data), { 'Content-Type': 'application/json;charset=UTF-8' }, 'POST', false)
-    .then((response) => {
-      console.log(response);
-      return Promise.resolve(response);
-    })
-    .catch((response) => {
-      console.log(response);
-      return Promise.reject(response);
-    });
+      .then((response) => {
+        console.log(response);
+        return Promise.resolve(response);
+      })
+      .catch((response) => {
+        console.log(response);
+        return Promise.reject(response);
+      });
   }
 
   /**
@@ -256,13 +269,13 @@ class Resource {
   async userLogout() {
     const uid = this.userGetUid();
     return await this._fetch('/user/' + uid, null, null, null, 'POST', true)
-    .then((e) => {
-      // Delete our local copies as well now that Drupal has logged us out.
-      localStorage.removeItem(this.config.token_name);
-      localStorage.removeItem(this.config.user_info);
-      // In case we need to update the UI.
-      return Promise.resolve(e);
-    });
+      .then((e) => {
+        // Delete our local copies as well now that Drupal has logged us out.
+        localStorage.removeItem(this.config.token_name);
+        localStorage.removeItem(this.config.user_info);
+        // In case we need to update the UI.
+        return Promise.resolve(e);
+      });
   }
 
   /**
@@ -404,9 +417,9 @@ class Resource {
     await response.json().then((data) => {
       _data = data;
     })
-    .catch((error) => {
-      _data = '';
-    });
+      .catch((error) => {
+        _data = '';
+      });
 
     let response_body = {
       status: response.status,
@@ -452,10 +465,10 @@ class Resource {
     });
 
     this.fetchWithAuthentication('/oauth/debug?_format=json', { headers })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('debug', data);
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('debug', data);
+      });
   }
 }
 

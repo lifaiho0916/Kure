@@ -20,7 +20,8 @@ import { openDrawer } from 'store/reducers/menu';
 import DrawerRightCart from '../Drawer/DrawerRightCart';
 // import DrawerLeft from '../Drawer/DrawerLeft';
 import SearchValue from 'components/SearchValue/index';
-import PopUp from '../../../popup/index';
+// eslint-disable-next-line no-unused-vars
+import PopUp from '../../../components/AgeGatePopup';
 import Logo from './Logo/Logo';
 import homeIcon from 'assets/images/icons/icon-home.svg';
 import cartIcon from 'assets/images/icons/icon-cart.svg';
@@ -175,6 +176,8 @@ function Header() {
         setStoreId(Number(event.data.data))
       }
     });
+
+    console.log("local_storage", localStorage.getItem("store_id"))
   }, [])
 
   return (

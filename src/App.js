@@ -43,6 +43,16 @@ const App = () => {
         })
       }
     });
+
+    db.storeData().count().then((count) => {
+      if (!count) {
+        resource.commerceActivateStore().then((el) => {
+          db.storeData().put(el.data.rows).then((res) => {
+            console.log(res)
+          })
+        })
+      }
+    })
   }, []);
 
   // /**
@@ -73,7 +83,7 @@ const App = () => {
 
   return (
     <ThemeCustomization>
-      <Routes/>
+      <Routes />
     </ThemeCustomization>
   );
 };
